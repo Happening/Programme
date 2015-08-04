@@ -53,7 +53,7 @@ exports.renderActivity = (name, items) !->
 					# min: '-8px 0px 0px 0px'
 				Dom.div !->
 					Dom.style
-						padding: '2px 8px'
+						padding: '2px 18px'
 						boxSizing: 'border-box'
 						Box: 'bottom right'
 						height: '100%'
@@ -104,14 +104,15 @@ exports.renderActivity = (name, items) !->
 					# Box: "center"
 					textAlign: 'center'
 					padding: "8px 0px"
-				for id in at
-					Ui.avatar Plugin.userAvatar(id), size: 60, onTap: !->
-						Plugin.userInfo id
-
+				if at.length
+					for id in at
+						Ui.avatar Plugin.userAvatar(id), size: 60, onTap: !->
+							Plugin.userInfo id
+				else
+					Dom.text "No one attending yet..."
+		else
+			Dom.text "No one attending yet..."
 		#Joining in button
-		Dom.css
-			".bar-foot":
-				background: '#111'
 		Page.setFooter label: !->
 			ar = Db.shared.get "attendance", name
 			if !ar?
