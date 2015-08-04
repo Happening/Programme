@@ -109,6 +109,9 @@ exports.renderActivity = (name, items) !->
 						Plugin.userInfo id
 
 		#Joining in button
+		Dom.css
+			".bar-foot":
+				background: '#111'
 		Page.setFooter label: !->
 			ar = Db.shared.get "attendance", name
 			if !ar?

@@ -1,9 +1,7 @@
-Who Is Who
+Programme
 ==========
 
-List all the users in the happening.
-The admin can determine what information the users should provide.
-A neat way to see all everyones avatar, name, and any information you want to provide.
+Allows the user to see the program of a festival and manage who is going to what.
 
 In case you don't know what this is about: Happening is a group app for iOS and Android, that allows you to create your own plugins in minutes. To get started signup at: https://develop.happening.im
 
