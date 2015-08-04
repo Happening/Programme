@@ -38,7 +38,9 @@ addThread = (name) ->
 		# 	_boxShadow: 'rgba(0, 0, 0, 0.4) 0px 1px 3px'
 		Dom.style
 			fontSize: '80%'
-			height: (rowHeight) + 'px'
+			# height: (rowHeight) + 'px'
+			height: '20px'
+			marginBottom: (rowHeight-20) + 'px'
 			padding: '4px'
 			# boxSizing: 'border-box'
 
@@ -105,6 +107,7 @@ exports.renderOverview = (items, threads) ->
 			listStyle: 'none'
 			padding: 0	
 			Box: 'vertical'
+			pointerEvents: 'none'
 			position: 'absolute'
 			top: '27px'
 			margin: "0px"
