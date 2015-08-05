@@ -3,29 +3,13 @@ Dom = require 'dom'
 Form = require 'form'
 Icon = require 'icon'
 Server = require 'server'
+Social = require 'social'
 Obs = require 'obs'
 Page = require 'page'
 Plugin = require 'plugin'
 Ui = require 'ui'
 {tr} = require 'i18n'
 TimeFormat = require 'timeFormat'
-
-addActivityItem = (title, content, sep = true, textAlign = "right", fontSize = 21) !->
-	Dom.div !->
-		if title?
-			Dom.p !->
-				Dom.style margin: '10px 0px 10px 10px'
-				Dom.text title
-		if content?
-			Dom.p !->
-				Dom.style
-					margin: '0px 10px 10px 10px'
-					textAlign: textAlign
-					clear: 'both'
-					fontSize: fontSize + 'px'
-				Dom.text content
-		if sep
-			Form.sep()
 
 exports.renderActivity = (name, items) !->
 	key = Page.state.get("?key")
@@ -81,13 +65,34 @@ exports.renderActivity = (name, items) !->
 			margin: '0px'
 
 		if item.description?
-			addActivityItem(null, item.description, true, "left", 17)
-		if item.start?
-			addActivityItem(tr("Start time:"), TimeFormat.toDisplayTime(TimeFormat.toMinutes(item.start)), true)
-		if item.duration? and item.start?
-			addActivityItem(tr("End time:"), TimeFormat.toDisplayTime(TimeFormat.toMinutes(item.start)+item.duration), true)
-		if item.location?
-			addActivityItem(tr("Venue:"), item.location, false)
+			Dom.p !->
+				Dom.style
+					margin: '0px 10px 10px 10px'
+					clear: 'both'
+					fontSize: '17px'
+				Dom.text item.description
+			Form.sep()
+
+		highlight = (text) ->
+			Dom.span !->
+				Dom.style color: Plugin.colors().highlight
+				Dom.text text
+
+
+		Dom.p !->
+			Dom.style
+				margin: '10px'
+				textAlign: "center"
+				clear: 'both'
+				fontSize: 21 + 'px'
+			
+			highlight item.day
+			Dom.text tr(" from ")
+			highlight TimeFormat.toDisplayTime(TimeFormat.toMinutes(item.start))
+			Dom.text tr(" to ")
+			highlight TimeFormat.toDisplayTime(TimeFormat.toMinutes(item.start)+item.duration)
+			Dom.text tr(" at ")
+			highlight item.location
 
 	#attendance
 	Dom.section !->
@@ -103,7 +108,7 @@ exports.renderActivity = (name, items) !->
 					textAlign: 'center'
 					padding: "8px 0px"
 				if at.length
-					for id in at
+					at.forEach (id) !->
 						Dom.div !->
 							Dom.style
 								width: '62px'
@@ -112,17 +117,13 @@ exports.renderActivity = (name, items) !->
 								padding: '10px'
 								borderRadius: '50%'
 								display: 'inline-block'
-							Dom.addClass "avatarContainer"
-							Dom.css
-								".avatarContainer:active":
-									backgroundColor: '#666'
 							Ui.avatar Plugin.userAvatar(id), size: 60
 							Dom.onTap !->
 								Plugin.userInfo id
 				else
-					Dom.text "No one attending yet..."
+					Dom.text tr("No one attending yet...")
 		else
-			Dom.text "No one attending yet..."
+			Dom.text tr("No one attending yet...")
 		#Joining in button
 		# footerAction = !->
 		# 	Server.sync 'join', name, !->
@@ -164,3 +165,16 @@ exports.renderActivity = (name, items) !->
 					Db.shared.set "attendance", name, value
 				else
 					Db.shared.set "attendance", name, [Plugin.userId()]
+
+	#comments with some restyling
+	Dom.section !->
+		Social.renderComments key
+		Dom.style
+			backgroundColor: "transparent"
+			border: "0px"
+			_boxShadow: "none"
+		Dom.css
+			"section section":
+				backgroundColor: '#333'
+				border: "1px solid #444"
+				_boxShadow: "none"

@@ -2,6 +2,7 @@ Db = require 'db'
 Dom = require 'dom'
 Form = require 'form'
 Server = require 'server'
+Obs = require 'obs'
 Page = require 'page'
 Plugin = require 'plugin'
 Ui = require 'ui'
@@ -94,6 +95,11 @@ exports.renderOverview = (items, threads, days) ->
 	rowHeight = Math.min(150, Math.max(rowHeight, (Page.height()-140-(threads.length*locationHeight))/threads.length))
 	contentHeight = Math.max(Page.height()-130, threads.length*(rowHeight+locationHeight)+12)+27
 
+	#title
+	if !Db.local.peek("day")? then Db.local.set("day", days[0])
+	Obs.observe !->
+		Page.setTitle Db.local.get("day")
+
 	Dom.style
 		Box: "vertical"
 		height: "100%"
@@ -115,12 +121,16 @@ exports.renderOverview = (items, threads, days) ->
 			Dom.style
 				zIndex: 50;
 				listStyle: 'none'
-				padding: 0	
+				padding: 0
+				margin: 0	
 				Box: 'vertical'
 				display: 'block'
 				pointerEvents: 'none'
-				margin: "27px 0px 0px 0px"
 				width: '0px'
+				height: '0px'
+				position: 'relative'
+			Dom.li !-> #no top, margin, padding or border works. so this is it then.
+				Dom.style height: "19px"
 			addThread t for t in threads
 		Dom.div !-> #body
 			Dom.style
@@ -151,23 +161,34 @@ exports.renderOverview = (items, threads, days) ->
 
 					Form.sep()
 					Dom.div !-> #items
+						day = Db.local.get("day")
 						Dom.style
 							listStyle: 'none'
 							margin: '0px'
 							padding: '8px'
 							position: 'relative'
 						# addItem item for item in items
-						for item in items
+						for item in items when item.day is day
 							addItem item, threads.indexOf(item.location)
 	#days
-	Dom.div !->
-		Dom.style
-			listStyle: 'none'
-			Box: 'horizontal'
-			# Flex: true
-		for day in days
-			Dom.li !->
-				Dom.text day
+	Page.setFooter !->
+		Dom.div !->
+			cd = Db.local.get("day")
+			Dom.style
+				listStyle: 'none'
+				Box: 'horizontal'
+				overflowX: 'auto'
+			days.forEach (day) !->
+				Dom.li !->
+					Dom.style
+						color: if cd is day then Plugin.colors().highlight else '#bbb'
+						Flex: true
+						textAlign: 'center'
+						minWidth: '90px'
+						height: '20px'
+					Dom.text day
+					Dom.onTap !->
+						Db.local.set("day", day)
 
 
 	#scroll to the position where we left it
