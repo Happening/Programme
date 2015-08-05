@@ -89,68 +89,86 @@ addItem = (item, index) ->
 			Page.state.set "_hScroll", scrollE.prop("scrollLeft")
 			Page.nav {0:item.name, "?key": item.key}
 
-exports.renderOverview = (items, threads) ->
+exports.renderOverview = (items, threads, days) ->
 	#responsive
 	rowHeight = Math.min(150, Math.max(rowHeight, (Page.height()-140-(threads.length*locationHeight))/threads.length))
 	contentHeight = Math.max(Page.height()-130, threads.length*(rowHeight+locationHeight)+12)+27
 
-	#overview
 	Dom.style
-		overflowX: 'visible'
-		overflowY: 'auto'
+		Box: "vertical"
+		height: "100%"
 		padding: '0px'
-		color: '#bbb'
 		background: '#191919'
-		_userSelect: 'none'
-		height: '100%'
-		display: 'flex'
-	Dom.ul !-> #thread legend
+
+	#overview
+	Dom.div !->
 		Dom.style
-			zIndex: 50;
-			listStyle: 'none'
-			padding: 0	
-			Box: 'vertical'
-			pointerEvents: 'none'
-			position: 'absolute'
-			top: '27px'
-			margin: "0px"
-		addThread t for t in threads
-	Dom.div !-> #body
-		Dom.style
-			overflowY: 'auto'
 			overflowX: 'visible'
-			boxSizing: 'border-box'
-			height: contentHeight
-
-		scrollE = Dom.get()	
-
-		Dom.div !-> #time legend
+			overflowY: 'auto'
+			padding: '0px'
+			color: '#bbb'
+			
+			_userSelect: 'none'
+			height: '100%'
+			display: 'flex'
+		Dom.ul !-> #thread legend
 			Dom.style
-				margin: '0px'
+				zIndex: 50;
 				listStyle: 'none'
-				padding: 0
-				Box: 'left'
-				width: (29*halfHourWidth+marginLeft) + 'px'
-				height: '100%'
-				marginLeft: marginLeft
-				position: 'relative'
-			addTime i*30+startTime for i in [0..28]
-			Dom.div !-> #content
-				Dom.style
-					position: 'absolute'
-					left: '0px'
-					top: '25px'
+				padding: 0	
+				Box: 'vertical'
+				display: 'block'
+				pointerEvents: 'none'
+				margin: "27px 0px 0px 0px"
+				width: '0px'
+			addThread t for t in threads
+		Dom.div !-> #body
+			Dom.style
+				overflowY: 'auto'
+				overflowX: 'visible'
+				boxSizing: 'border-box'
+				height: contentHeight
+				paddingLeft: '8px'
 
-				Form.sep()
-				Dom.div !-> #items
+			scrollE = Dom.get()	
+
+			Dom.div !-> #time legend
+				Dom.style
+					margin: '0px'
+					listStyle: 'none'
+					padding: 0
+					Box: 'left'
+					width: (29*halfHourWidth+marginLeft) + 'px'
+					height: '100%'
+					marginLeft: marginLeft
+					position: 'relative'
+				addTime i*30+startTime for i in [0..28]
+				Dom.div !-> #content
 					Dom.style
-						listStyle: 'none'
-						margin: '0px'
-						padding: '8px'
-						position: 'relative'
-					# addItem item for item in items
-					for item in items
-						addItem item, threads.indexOf(item.location)
+						position: 'absolute'
+						left: '0px'
+						top: '25px'
+
+					Form.sep()
+					Dom.div !-> #items
+						Dom.style
+							listStyle: 'none'
+							margin: '0px'
+							padding: '8px'
+							position: 'relative'
+						# addItem item for item in items
+						for item in items
+							addItem item, threads.indexOf(item.location)
+	#days
+	Dom.div !->
+		Dom.style
+			listStyle: 'none'
+			Box: 'horizontal'
+			# Flex: true
+		for day in days
+			Dom.li !->
+				Dom.text day
+
 
 	#scroll to the position where we left it
 	scrollE.prop("scrollLeft", Page.state.get("_hScroll")||0)	

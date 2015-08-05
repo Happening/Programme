@@ -85,6 +85,24 @@ items = [
 			description: "Caravan Palace is a French electro swing band based in Paris. The band's influences include Django Reinhardt, Vitalic, Lionel Hampton, and Daft Punk. The band released their début studio album, Caravan Palace, on the Wagram label in October 2008."
 			shadowColor: "rgba(184,	132, 100, 0.4)"
 		}
+		{
+			key: 8
+			name: "Seasick Steve"
+			location: '10'
+			start: "0930"
+			duration: 90
+			description: "Steven Gene Wold, commonly known as Seasick Steve, is an American blues musician. He plays mostly personalized guitars, and sings, usually about his early life doing casual work."
+			shadowColor: "rgba(200,	148, 89, 0.4)"
+		}
+		{
+			key: 9
+			name: "The Prodigy"
+			location: '9'
+			start: "0930"
+			duration: 90
+			description: "The Prodigy are an English electronic dance music group from Braintree, Essex, formed by Liam Howlett in 1990. The current members include Liam Howlett, Keith Flint and Maxim."
+			shadowColor: "rgba(186,	184, 183, 0.4)"
+		}
 	]
 
 # Initial entry point
@@ -92,4 +110,4 @@ exports.render = !->
 	if arg = Page.state.get(0)
 		return Activity.renderActivity(arg, items)
 	else
-		return Overview.renderOverview(items, threads)
+		return Overview.renderOverview(items, threads, days)

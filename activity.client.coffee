@@ -35,8 +35,8 @@ exports.renderActivity = (name, items) !->
 		padding: "0px"
 		backgroundColor: '#191919'
 		color: '#bbb'
-		overflow: 'auto'
-		height: '100%'
+		# overflow: 'auto'
+		# height: '100%'
 	Dom.css
 		".form-sep":
 			background: '#555'
@@ -124,37 +124,7 @@ exports.renderActivity = (name, items) !->
 		else
 			Dom.text "No one attending yet..."
 		#Joining in button
-		footerAction = !->
-			Server.sync 'join', name, !->
-				value = Db.shared.get "attendance", name
-				if value?
-					if Plugin.userId() in value
-						value.splice value.indexOf(Plugin.userId()), 1
-					else
-						value.push Plugin.userId()
-					Db.shared.set "attendance", name, value
-				else
-					Db.shared.set "attendance", name, [Plugin.userId()]
-		Obs.observe !->
-			ar = Db.shared.get "attendance", name
-			if !ar?
-				Page.setFooter label: tr("Join in!"), action: footerAction
-			else
-				if Plugin.userId() in ar
-					Page.setFooter label: tr("Don't go"), action: footerAction
-				else
-					Page.setFooter label: tr("Join in!"), action: footerAction
-
-		# Page.setFooter label: !->
-		# 	ar = Db.shared.get "attendance", name
-		# 	if !ar?
-		# 		Dom.text tr("Join in!")
-		# 	else
-		# 		if Plugin.userId() in ar
-		# 			Dom.text tr("Don't go")
-		# 		else
-		# 			Dom.text tr("Join in!")
-		# , action: !->
+		# footerAction = !->
 		# 	Server.sync 'join', name, !->
 		# 		value = Db.shared.get "attendance", name
 		# 		if value?
@@ -165,4 +135,32 @@ exports.renderActivity = (name, items) !->
 		# 			Db.shared.set "attendance", name, value
 		# 		else
 		# 			Db.shared.set "attendance", name, [Plugin.userId()]
-			
+		# Obs.observe !->
+		# 	ar = Db.shared.get "attendance", name
+		# 	lorum = "lorum ipsum dolorus mit. En wat meer latijnse woorden diet ik niet ken."
+		# 	# lorum = " o/"
+		# 	if !ar?
+		# 		log Page.setFooter label: tr("Join in!" + lorum), action: footerAction
+		# 	else
+		# 		if Plugin.userId() in ar
+		# 			log Page.setFooter label: tr("Don't go"+ lorum), action: footerAction
+		# 		else
+		# 			log Page.setFooter label: tr("Join in!")+ lorum, action: footerAction
+
+		Page.setFooter label: !->
+			ar = Db.shared.get "attendance", name
+			if !ar?
+				Dom.text tr("Join in!")
+			else
+				Dom.text if (Plugin.userId() in ar) then tr("Don't go") else tr("Join in!")
+		, action: !->
+			Server.sync 'join', name, !->
+				value = Db.shared.get "attendance", name
+				if value?
+					if Plugin.userId() in value
+						value.splice value.indexOf(Plugin.userId()), 1
+					else
+						value.push Plugin.userId()
+					Db.shared.set "attendance", name, value
+				else
+					Db.shared.set "attendance", name, [Plugin.userId()]
