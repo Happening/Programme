@@ -61,7 +61,6 @@ exports.renderActivity = (name, items) !->
 						background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%,rgba(0,0,0,0) 50px)'
 						color: '#eee'
 						fontSize: '24px'
-						color: '#FFF'
 						_boxShadow: (if item.shadowColor? then item.shadowColor else 'rgba(228, 64, 64, 0.4)') + ' 0px 2px 4px'
 					Dom.text item.name
 	else
