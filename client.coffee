@@ -12,7 +12,7 @@ Ui = require 'ui'
 Overview = require 'overview'
 Activity = require 'activity'
 
-threads = ["Alpha", "Beta", "Gamma"]#, "4", "5", "6", "7"]
+threads = ["Alpha", "Beta", "Gamma"]#, "4", "5", "6", "7", "8", "9", "10"]
 
 #start time goes in time notation without the ':', duration in minutes
 items = [

@@ -3,13 +3,14 @@ Dom = require 'dom'
 Form = require 'form'
 Icon = require 'icon'
 Server = require 'server'
+Obs = require 'obs'
 Page = require 'page'
 Plugin = require 'plugin'
 Ui = require 'ui'
 {tr} = require 'i18n'
 TimeFormat = require 'timeFormat'
 
-addActivityItem = (title, content, sep = true) !->
+addActivityItem = (title, content, sep = true, textAlign = "right", fontSize = 21) !->
 	Dom.div !->
 		if title?
 			Dom.p !->
@@ -18,10 +19,10 @@ addActivityItem = (title, content, sep = true) !->
 		if content?
 			Dom.p !->
 				Dom.style
-					margin: '0px 10px 10px 0px'
-					textAlign: 'right'
+					margin: '0px 10px 10px 10px'
+					textAlign: textAlign
 					clear: 'both'
-					fontSize: '21px'
+					fontSize: fontSize + 'px'
 				Dom.text content
 		if sep
 			Form.sep()
@@ -34,6 +35,8 @@ exports.renderActivity = (name, items) !->
 		padding: "0px"
 		backgroundColor: '#191919'
 		color: '#bbb'
+		overflow: 'auto'
+		height: '100%'
 	Dom.css
 		".form-sep":
 			background: '#555'
@@ -78,7 +81,7 @@ exports.renderActivity = (name, items) !->
 			margin: '0px'
 
 		if item.description?
-			addActivityItem(null, item.description, true)
+			addActivityItem(null, item.description, true, "left", 17)
 		if item.start?
 			addActivityItem(tr("Start time:"), TimeFormat.toDisplayTime(TimeFormat.toMinutes(item.start)), true)
 		if item.duration? and item.start?
@@ -96,32 +99,32 @@ exports.renderActivity = (name, items) !->
 		if at = Db.shared.get("attendance", name)
 			Dom.text tr("Attending:")
 			Dom.div !->
-				Dom.css
-					".ui-avatar":
-						"margin": "4px !important" #very ugly to use !imporant.
 				Dom.style
-					# Box: "center"
 					textAlign: 'center'
 					padding: "8px 0px"
 				if at.length
 					for id in at
-						Ui.avatar Plugin.userAvatar(id), size: 60, onTap: !->
-							Plugin.userInfo id
+						Dom.div !->
+							Dom.style
+								width: '62px'
+								height: '62px'
+								# margin: '20px'
+								padding: '10px'
+								borderRadius: '50%'
+								display: 'inline-block'
+							Dom.addClass "avatarContainer"
+							Dom.css
+								".avatarContainer:active":
+									backgroundColor: '#666'
+							Ui.avatar Plugin.userAvatar(id), size: 60
+							Dom.onTap !->
+								Plugin.userInfo id
 				else
 					Dom.text "No one attending yet..."
 		else
 			Dom.text "No one attending yet..."
 		#Joining in button
-		Page.setFooter label: !->
-			ar = Db.shared.get "attendance", name
-			if !ar?
-				Dom.text tr("Join in!")
-			else
-				if Plugin.userId() in ar
-					Dom.text tr("Don't go")
-				else
-					Dom.text tr("Join in!")
-		, action: !->
+		footerAction = !->
 			Server.sync 'join', name, !->
 				value = Db.shared.get "attendance", name
 				if value?
@@ -132,3 +135,34 @@ exports.renderActivity = (name, items) !->
 					Db.shared.set "attendance", name, value
 				else
 					Db.shared.set "attendance", name, [Plugin.userId()]
+		Obs.observe !->
+			ar = Db.shared.get "attendance", name
+			if !ar?
+				Page.setFooter label: tr("Join in!"), action: footerAction
+			else
+				if Plugin.userId() in ar
+					Page.setFooter label: tr("Don't go"), action: footerAction
+				else
+					Page.setFooter label: tr("Join in!"), action: footerAction
+
+		# Page.setFooter label: !->
+		# 	ar = Db.shared.get "attendance", name
+		# 	if !ar?
+		# 		Dom.text tr("Join in!")
+		# 	else
+		# 		if Plugin.userId() in ar
+		# 			Dom.text tr("Don't go")
+		# 		else
+		# 			Dom.text tr("Join in!")
+		# , action: !->
+		# 	Server.sync 'join', name, !->
+		# 		value = Db.shared.get "attendance", name
+		# 		if value?
+		# 			if Plugin.userId() in value
+		# 				value.splice value.indexOf(Plugin.userId()), 1
+		# 			else
+		# 				value.push Plugin.userId()
+		# 			Db.shared.set "attendance", name, value
+		# 		else
+		# 			Db.shared.set "attendance", name, [Plugin.userId()]
+			

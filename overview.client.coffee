@@ -14,6 +14,8 @@ marginLeft = 8 #in pixels #80
 locationHeight = 8 #in pixels
 startTime = 540 #in minuts
 
+scrollE = null
+
 addTime = (time) ->
 	Dom.li !->
 		Dom.style
@@ -83,6 +85,8 @@ addItem = (item, index) ->
 				top: '5px'
 				right: '-10px'
 		Dom.onTap !->
+			#save scroll to state
+			Page.state.set "_hScroll", scrollE.prop("scrollLeft")
 			Page.nav {0:item.name, "?key": item.key}
 
 exports.renderOverview = (items, threads) ->
@@ -90,7 +94,6 @@ exports.renderOverview = (items, threads) ->
 	rowHeight = Math.min(150, Math.max(rowHeight, (Page.height()-140-(threads.length*locationHeight))/threads.length))
 	contentHeight = Math.max(Page.height()-130, threads.length*(rowHeight+locationHeight)+12)+27
 
-	scrollE = null
 	#overview
 	Dom.style
 		overflowX: 'visible'
@@ -148,10 +151,10 @@ exports.renderOverview = (items, threads) ->
 					# addItem item for item in items
 					for item in items
 						addItem item, threads.indexOf(item.location)
-	
-	#scroll to the position where we left it	
-	scrollE.prop("scrollLeft", Page.state.get("_scroll")||0)		
 
-	Page.onNavClean (prev) !->
-		if scrollE.prop("scrollLeft")
-			prev._scroll = scrollE.prop("scrollLeft")
+	#scroll to the position where we left it
+	scrollE.prop("scrollLeft", Page.state.get("_hScroll")||0)	
+
+	# Page.onNavClean (prev) !->
+		# if scrollE.prop("scrollLeft")
+			# prev._hScroll = scrollE.prop("scrollLeft")

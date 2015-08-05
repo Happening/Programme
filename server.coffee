@@ -23,11 +23,8 @@ exports.spotifyResponse = (data) !->
 		Db.shared.set name, imgUrl
 
 exports.client_join = (name) !->
-	# value = Plugin.userId()
 	value = Db.shared.get("attendance", name)
 	if value?
-		log "yes"
-		log value
 		if Plugin.userId() in value
 			value.splice value.indexOf(Plugin.userId()), 1
 		else
