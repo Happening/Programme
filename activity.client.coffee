@@ -1,5 +1,6 @@
 Db = require 'db'
 Dom = require 'dom'
+Event = require 'event'
 Form = require 'form'
 Icon = require 'icon'
 Server = require 'server'
@@ -11,10 +12,13 @@ Ui = require 'ui'
 {tr} = require 'i18n'
 TimeFormat = require 'timeFormat'
 
-exports.renderActivity = (name, items) !->
-	key = Page.state.get("?key")
+exports.renderActivity = (key, items) !->
+	# key = Page.state.get("?key")
+	# key = Page.state.get(0)
 	item = items[key]
+	name = item.name
 	Page.setTitle item.name
+	Event.showStar tr(item.name)
 	Dom.style
 		padding: "0px"
 		backgroundColor: '#191919'
@@ -168,6 +172,7 @@ exports.renderActivity = (name, items) !->
 					if value?
 						if Plugin.userId() in value
 							value.splice value.indexOf(Plugin.userId()), 1
+							# Event.subscribe item.key
 						else
 							value.push Plugin.userId()
 						Db.shared.set "attendance", name, value

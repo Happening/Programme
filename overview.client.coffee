@@ -1,5 +1,6 @@
 Db = require 'db'
 Dom = require 'dom'
+Event = require 'event'
 Form = require 'form'
 Server = require 'server'
 Obs = require 'obs'
@@ -67,6 +68,7 @@ addItem = (item, index) ->
 			backgroundPosition: 'center 30%'
 			boxSizing: 'border-box'
 			_boxShadow: (if item.shadowColor? then item.shadowColor else 'rgba(228, 64, 64, 0.4)') + ' 0px 2px 4px'
+			borderRadius: '2px'
 			padding: '0px'
 		Dom.div !->
 			Dom.style
@@ -80,13 +82,21 @@ addItem = (item, index) ->
 				color: '#eee'
 				_whiteSpace: 'nowrap'
 			Dom.text item.name
-		if at = Db.shared.get("attendance", item.name)
-			Ui.unread at.length, Plugin.colors().highlight,
-				position: "absolute"
-				top: '5px'
-				right: '-10px'
+		Dom.div !->
+			Dom.style
+				position: 'absolute'
+				top: '0px'
+				right: '0px'
+				textAlign: 'right'
+				paddingTop: '1px'
+			if at = Db.shared.get("attendance", item.name)
+				at.forEach (id) !->
+					Ui.avatar Plugin.userAvatar(id), size: 15
+			Event.renderBubble [item.key], style:
+				margin: '-15px -10px 0px 0px'
+				background: 'wheat'
 		Dom.onTap !->
-			Page.nav {0:item.name, "?key": item.key}
+			Page.nav {0:item.key}
 
 exports.renderOverview = (items, threads, days) ->
 	#responsive
