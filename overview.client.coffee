@@ -86,8 +86,6 @@ addItem = (item, index) ->
 				top: '5px'
 				right: '-10px'
 		Dom.onTap !->
-			#save scroll to state
-			Page.state.set "_hScroll", scrollE.prop("scrollLeft")
 			Page.nav {0:item.name, "?key": item.key}
 
 exports.renderOverview = (items, threads, days) ->
@@ -192,8 +190,8 @@ exports.renderOverview = (items, threads, days) ->
 
 
 	#scroll to the position where we left it
-	scrollE.prop("scrollLeft", Page.state.get("_hScroll")||0)	
+	scrollE.prop("scrollLeft", Db.local.peek("hScroll")||0)	
 
-	# Page.onNavClean (prev) !->
-		# if scrollE.prop("scrollLeft")
-			# prev._hScroll = scrollE.prop("scrollLeft")
+	#save scroll to state
+	Obs.onClean !->
+		Db.local.set "hScroll", scrollE.prop("scrollLeft")
