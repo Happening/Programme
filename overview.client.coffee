@@ -56,11 +56,12 @@ addItem = (item, index) ->
 		# imgUrl = "not found"
 		if !imgUrl?
 			Server.call "getCover", item.name.toLowerCase()
+		itemWidth = item.duration/30*halfHourWidth
 		Dom.style
 			position: 'absolute'
 			left: ((TimeFormat.toHourFractal(item.start)*halfHourWidth*2) - (startTime/30*halfHourWidth)) + "px"
 			top: index*(rowHeight+locationHeight)+locationHeight+14 + 'px'
-			width: item.duration/30*halfHourWidth + "px"
+			width: itemWidth + "px"
 			height: rowHeight-16 + 'px'
 			backgroundColor: '#666'
 			backgroundImage: 'url("' + imgUrl + '")' if imgUrl isnt "not found"
@@ -89,12 +90,14 @@ addItem = (item, index) ->
 				right: '0px'
 				textAlign: 'right'
 				paddingTop: '1px'
+				_whiteSpace: 'nowrap'
 			if at = Db.shared.get("attendance", item.name)
-				at.forEach (id) !->
+				maxAvatars = Math.floor((itemWidth-40)/20)
+				at.forEach (id, i) !->
+					if i > maxAvatars then return
 					Ui.avatar Plugin.userAvatar(id), size: 15
 			Event.renderBubble [item.key], style:
-				margin: '-15px -10px 0px 0px'
-				background: 'wheat'
+				margin: if itemWidth > 35 then '-15px -10px 0px 0px' else '-15px -15px 0px 0px'
 		Dom.onTap !->
 			Page.nav {0:item.key}
 
