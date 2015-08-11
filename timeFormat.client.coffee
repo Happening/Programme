@@ -12,5 +12,7 @@ exports.toMinutes = (t) ->
 
 exports.toDisplayTime = (t) ->
 	h = Math.floor(t/60)
+	h = h%24
+	if h<10 then h = "0"+h
 	m = t%60
 	h + ":" + (m||"00")

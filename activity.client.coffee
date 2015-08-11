@@ -24,23 +24,34 @@ exports.renderActivity = (key, items) !->
 		backgroundColor: '#191919'
 		color: '#bbb'
 		# overflow: 'auto'
-		height: '100%'
+	if Plugin.agent().ios
+			Dom.style
+				height: '100%'
 	Dom.css
 		".form-sep":
 			background: '#555'
 
 	#scroll div
 	Dom.div !->
-		Dom.style
-			overflow: 'auto'
-			height: '100%'
+		if Plugin.agent().ios
+			Dom.overflow()
+			Dom.style
+				height: '100%'
 
 		#content div
 		Dom.div !->
 			#big avatar of the activity
-			if Db.shared.get(name.toLowerCase()) isnt "not found"
+			if item.bigImg
+				imgUrl = item.bigImg
+			else
+				if item.smallImg
+					imgUrl = item.smallImg
+				else
+					imgUrl = Db.shared.get(name.toLowerCase())
+
+			if imgUrl isnt "not found"
 				Icon.render
-					data: Db.shared.get(name.toLowerCase())
+					data: imgUrl
 					size: 200
 					content: !->
 						Dom.style
@@ -60,7 +71,8 @@ exports.renderActivity = (key, items) !->
 								background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%,rgba(0,0,0,0) 50px)'
 								color: '#eee'
 								fontSize: '24px'
-								_boxShadow: (if item.shadowColor? then item.shadowColor else 'rgba(228, 64, 64, 0.4)') + ' 0px 2px 4px'
+								textAlign: 'right'
+								_boxShadow: (if item.color? then item.color else 'rgba(228, 64, 64, 0.4)') + ' 0px 2px 4px'
 							Dom.text item.name
 			else
 				Dom.h1 !->
@@ -76,24 +88,15 @@ exports.renderActivity = (key, items) !->
 					border: 'none'
 					margin: '0px'
 
-				if item.description?
-					Dom.p !->
-						Dom.style
-							margin: '0px 10px 10px 10px'
-							clear: 'both'
-							fontSize: '17px'
-						Dom.text item.description
-					Form.sep()
-
 				highlight = (text) ->
 					Dom.span !->
 						Dom.style color: Plugin.colors().highlight
-						Dom.text text
+						Dom.userText text
 
 
 				Dom.p !->
 					Dom.style
-						margin: '10px'
+						margin: '10px 10px 15px 10px'
 						textAlign: "center"
 						clear: 'both'
 						fontSize: 21 + 'px'
@@ -101,41 +104,51 @@ exports.renderActivity = (key, items) !->
 					highlight item.day
 					Dom.text tr(" from ")
 					highlight TimeFormat.toDisplayTime(TimeFormat.toMinutes(item.start))
-					Dom.text tr(" to ")
+					Dom.text tr(" till ")
 					highlight TimeFormat.toDisplayTime(TimeFormat.toMinutes(item.start)+item.duration)
 					Dom.text tr(" at ")
 					highlight item.location
 
-			#attendance
-			Dom.section !->
-				Dom.style
-					backgroundColor: '#222'
-					border: 'none'
-					margin: '10px 0px 0px 0px'
-					padding: '8px 18px'
-				if at = Db.shared.get("attendance", name)
-					Dom.text tr("Attending:")
+				Form.sep()
+
+				if item.description?
 					Dom.div !->
 						Dom.style
-							textAlign: 'center'
-							padding: "8px 0px"
-						if at.length
-							at.forEach (id) !->
-								Dom.div !->
-									Dom.style
-										width: '62px'
-										height: '62px'
-										# margin: '20px'
-										padding: '10px'
-										borderRadius: '50%'
-										display: 'inline-block'
-									Ui.avatar Plugin.userAvatar(id), size: 60
-									Dom.onTap !->
-										Plugin.userInfo id
-						else
-							Dom.text tr("No one attending yet...")
-				else
-					Dom.text tr("No one attending yet...")
+							margin: '10px 10px 10px 10px'
+							clear: 'both'
+							fontSize: '17px'
+						Dom.userText item.description
+
+			#attendance
+			if at = Db.shared.get("attendance", name)
+				Dom.section !->
+					Dom.style
+						backgroundColor: '#222'
+						border: 'none'
+						margin: '10px 0px 0px 0px'
+						padding: '8px 18px'				
+						Dom.text tr("Attending:")
+						Dom.div !->
+							Dom.style
+								textAlign: 'center'
+								padding: "8px 0px"
+							if at.length
+								at.forEach (id) !->
+									Dom.div !->
+										Dom.style
+											width: '62px'
+											height: '62px'
+											# margin: '20px'
+											padding: '10px'
+											borderRadius: '50%'
+											display: 'inline-block'
+										Ui.avatar Plugin.userAvatar(id), size: 60
+										Dom.onTap !->
+											Plugin.userInfo id
+					# 		else
+					# 			Dom.text tr("No one attending yet...")
+					# else
+					# 	Dom.text tr("No one attending yet...")
 				#Joining in button
 				# footerAction = !->
 				# 	Server.sync 'join', name, !->
@@ -162,10 +175,10 @@ exports.renderActivity = (key, items) !->
 
 			Page.setFooter label: !->
 				ar = Db.shared.get "attendance", name
-				if !ar?
-					Dom.text tr("Join in!")
+				if !ar? or Plugin.userId() not in ar
+					Dom.text tr("Count me in!")
 				else
-					Dom.text if (Plugin.userId() in ar) then tr("Don't go") else tr("Join in!")
+					Dom.text tr("Count me out...")
 			, action: !->
 				Server.sync 'join', name, !->
 					value = Db.shared.get "attendance", name

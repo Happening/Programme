@@ -17,6 +17,7 @@ locationHeight = 8 #in pixels
 startTime = 540 #in minuts
 
 scrollE = null
+scrollVE = null
 
 addTime = (time) ->
 	Dom.li !->
@@ -26,36 +27,28 @@ addTime = (time) ->
 			boxSizing: 'border-box'
 			background: '#222' if (time%60 isnt 0) 
 			height: '100%'
-		Dom.text Math.floor(time/60) + ":" + if (time%60) then (time%60) else "00"
+		# Dom.text Math.floor(time/60) + ":" + if (time%60) then (time%60) else "00"
+		Dom.text TimeFormat.toDisplayTime(time)
 
 addThread = (name) ->
 	Dom.li !->
-		# Dom.style
-		# 	minWidth: '70px'
-		# 	height: (rowHeight-8) + 'px'
-		# 	padding: '8px'
-		# 	margin: '0px 0px 8px 0px'
-		# 	fontSize: '130%'
-		# 	boxSizing: 'border-box'
-		# 	background: '#fff'
-		# 	Box: 'middle right'
-		# 	_boxShadow: 'rgba(0, 0, 0, 0.4) 0px 1px 3px'
 		Dom.style
 			fontSize: '80%'
-			# height: (rowHeight) + 'px'
 			height: '20px'
 			marginBottom: (rowHeight-20) + 'px'
 			padding: '4px'
-			# boxSizing: 'border-box'
-
+			_whiteSpace: 'nowrap'
 		Dom.text name + ":"
 
-addItem = (item, index) ->
+addItem = (item, index, startTime) ->
 	Dom.li !->
-		imgUrl = Db.shared.get item.name.toLowerCase()
-		# imgUrl = "not found"
-		if !imgUrl?
-			Server.call "getCover", item.name.toLowerCase()
+		Dom.addClass "act"
+		if item.smallImg
+			imgUrl = item.smallImg
+		else
+			imgUrl = Db.shared.get item.name.toLowerCase()
+			if !imgUrl?
+				Server.call "getCover", item.name.toLowerCase()
 		itemWidth = item.duration/30*halfHourWidth
 		Dom.style
 			position: 'absolute'
@@ -68,21 +61,31 @@ addItem = (item, index) ->
 			backgroundSize: 'cover'
 			backgroundPosition: 'center 30%'
 			boxSizing: 'border-box'
-			_boxShadow: (if item.shadowColor? then item.shadowColor else 'rgba(228, 64, 64, 0.4)') + ' 0px 2px 4px'
+			_boxShadow: "rgba(#{item.color || "228,64,64"}, 1.0) 0px 0px 40px" if Db.shared.get("attendance", item.name)
+			fontWeight: 'bold' if Db.shared.get("attendance", item.name)
 			borderRadius: '2px'
 			padding: '0px'
 		Dom.div !->
 			Dom.style
-				overflow: 'hidden'
-				padding: '2px 8px'
-				boxSizing: 'border-box'
 				Box: 'bottom'
+				verticalAlign: 'bottom'
 				height: '100%'
 				width: '100%'
 				background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%,rgba(0,0,0,0) 50px)'
-				color: '#eee'
-				_whiteSpace: 'nowrap'
-			Dom.text item.name
+			Dom.span !->
+				Dom.style
+					fontSize: '90%'
+					boxSizing: 'border-box'
+					padding: '2px 8px'
+					color: '#eee'				
+					overflow: 'hidden'
+					position: 'absolute'
+					bottom: '0px'
+					_whiteSpace: 'nowrap'
+					textOverflow: 'ellipsis'
+					width: '100%'
+
+				Dom.userText item.name
 		Dom.div !->
 			Dom.style
 				position: 'absolute'
@@ -101,10 +104,14 @@ addItem = (item, index) ->
 		Dom.onTap !->
 			Page.nav {0:item.key}
 
-exports.renderOverview = (items, threads, days) ->
+exports.renderOverview = (items, threads, days, startTimes, endTimes) ->
 	#responsive
 	rowHeight = Math.min(150, Math.max(rowHeight, (Page.height()-140-(threads.length*locationHeight))/threads.length))
 	contentHeight = Math.max(Page.height()-130, threads.length*(rowHeight+locationHeight)+12)+27
+
+	Dom.css
+		'.act.tap>div':
+			background: 'rgba(0, 0, 0, 0.4) !important'
 
 	#title
 	if !Db.local.peek("day")? then Db.local.set("day", days[0])
@@ -113,22 +120,37 @@ exports.renderOverview = (items, threads, days) ->
 
 	Dom.style
 		Box: "vertical"
-		height: "100%"
 		padding: '0px'
 		background: '#191919'
+	if Plugin.agent().android
+		Dom.style height: (contentHeight+29)+'px'
+		if Plugin.agent().android < 3
+			Obs.observe !->
+				day = Db.local.get("day")
+				dayIndex = days.indexOf(day)
+				timeWidth = (TimeFormat.toMinutes(endTimes[dayIndex])-TimeFormat.toMinutes(startTimes[dayIndex]))/30 + 6
+				Dom.style
+					width: (timeWidth*halfHourWidth+marginLeft) + 'px'
+	else
+		Dom.style height: '100%'
 
 	#overview
 	Dom.div !->
 		Dom.style
-			overflowX: 'visible'
-			overflowY: 'auto'
 			padding: '0px'
-			color: '#bbb'
-			
+			color: '#bbb'			
 			_userSelect: 'none'
-			height: '100%'
+			height: contentHeight+'px' #thing?
 			display: 'flex'
-		Dom.ul !-> #thread legend
+		if not Plugin.agent().android
+			Dom.style
+				overflowX: 'visible'
+				overflowY: 	'auto'
+				height: '100%'
+
+		scrollVE = Dom.get()
+
+		Dom.div !-> #thread legend
 			Dom.style
 				zIndex: 50;
 				listStyle: 'none'
@@ -139,31 +161,50 @@ exports.renderOverview = (items, threads, days) ->
 				pointerEvents: 'none'
 				width: '0px'
 				height: '0px'
+				# textTransform: "uppercase"
 				position: 'relative'
-			Dom.li !-> #no top, margin, padding or border works. so this is it then.
-				Dom.style height: "19px"
-			addThread t for t in threads
+			Dom.div !->
+				if Plugin.agent().android > 3
+					Dom.style
+						borderBottom: '29px solid transparent'
+						height: height: contentHeight+'px'
+						width: Page.width()+'px'
+
+				Dom.li !-> #no top, margin, padding or border works. so this is it then.
+					Dom.style height: "19px"
+				addThread t for t in threads
 		Dom.div !-> #body
-			Dom.style
-				overflowY: 'auto'
-				overflowX: 'visible'
-				boxSizing: 'border-box'
-				height: contentHeight
-				paddingLeft: '8px'
+			if Plugin.agent().android
+				if Plugin.agent().android > 3
+					Dom.overflow()
+					Dom.style
+						boxSizing: 'border-box'
+						height: contentHeight
+						paddingLeft: '8px'
+			else
+				Dom.style
+					overflowY: 'auto'
+					overflowX: 'visible'
+					boxSizing: 'border-box'
+					height: contentHeight
+					paddingLeft: '8px'
 
 			scrollE = Dom.get()	
 
 			Dom.div !-> #time legend
+				day = Db.local.get("day")
+				dayIndex = days.indexOf(day)
+				timeWidth = (TimeFormat.toMinutes(endTimes[dayIndex])-TimeFormat.toMinutes(startTimes[dayIndex]))/30 + 1
 				Dom.style
 					margin: '0px'
 					listStyle: 'none'
 					padding: 0
 					Box: 'left'
-					width: (29*halfHourWidth+marginLeft) + 'px'
+					width: (timeWidth*halfHourWidth+marginLeft) + 'px'
 					height: '100%'
 					marginLeft: marginLeft
 					position: 'relative'
-				addTime i*30+startTime for i in [0..28]
+				addTime i for i in [TimeFormat.toMinutes(startTimes[dayIndex])..TimeFormat.toMinutes(endTimes[dayIndex])] by 30
 				Dom.div !-> #content
 					Dom.style
 						position: 'absolute'
@@ -172,7 +213,6 @@ exports.renderOverview = (items, threads, days) ->
 
 					Form.sep()
 					Dom.div !-> #items
-						day = Db.local.get("day")
 						Dom.style
 							listStyle: 'none'
 							margin: '0px'
@@ -180,7 +220,7 @@ exports.renderOverview = (items, threads, days) ->
 							position: 'relative'
 						# addItem item for item in items
 						for item in items when item.day is day
-							addItem item, threads.indexOf(item.location)
+							addItem item, threads.indexOf(item.location), TimeFormat.toMinutes(startTimes[dayIndex])
 	#days
 	Page.setFooter !->
 		Dom.div !->
@@ -188,7 +228,11 @@ exports.renderOverview = (items, threads, days) ->
 			Dom.style
 				listStyle: 'none'
 				Box: 'horizontal'
-				overflowX: 'auto'
+				# overflowX: 'auto'
+				background: '#191919'
+			Dom.css
+				'.tap':
+					background: '#eee'
 			days.forEach (day) !->
 				Dom.li !->
 					Dom.style
@@ -201,10 +245,11 @@ exports.renderOverview = (items, threads, days) ->
 					Dom.onTap !->
 						Db.local.set("day", day)
 
-
 	#scroll to the position where we left it
 	scrollE.prop("scrollLeft", Db.local.peek("hScroll")||0)	
+	scrollVE.prop("scrollTop", Db.local.peek("vScroll")||0)	
 
 	#save scroll to state
 	Obs.onClean !->
 		Db.local.set "hScroll", scrollE.prop("scrollLeft")
+		Db.local.set "vScroll", scrollVE.prop("scrollTop")
