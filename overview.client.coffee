@@ -124,13 +124,13 @@ exports.renderOverview = (items, threads, days, startTimes, endTimes) ->
 		background: '#191919'
 	if Plugin.agent().android
 		Dom.style height: (contentHeight+29)+'px'
-		if Plugin.agent().android < 3
+		if Plugin.agent().android < 4.4
 			Obs.observe !->
 				day = Db.local.get("day")
 				dayIndex = days.indexOf(day)
-				timeWidth = (TimeFormat.toMinutes(endTimes[dayIndex])-TimeFormat.toMinutes(startTimes[dayIndex]))/30 + 6
+				timeWidth = (TimeFormat.toMinutes(endTimes[dayIndex])-TimeFormat.toMinutes(startTimes[dayIndex]))/30 + 1
 				Dom.style
-					width: (timeWidth*halfHourWidth+marginLeft) + 'px'
+					width: (timeWidth*halfHourWidth+marginLeft) + 19 + 'px'
 	else
 		Dom.style height: '100%'
 
@@ -164,7 +164,7 @@ exports.renderOverview = (items, threads, days, startTimes, endTimes) ->
 				# textTransform: "uppercase"
 				position: 'relative'
 			Dom.div !->
-				if Plugin.agent().android > 3
+				if Plugin.agent().android >= 4.4
 					Dom.style
 						borderBottom: '29px solid transparent'
 						height: height: contentHeight+'px'
@@ -175,7 +175,7 @@ exports.renderOverview = (items, threads, days, startTimes, endTimes) ->
 				addThread t for t in threads
 		Dom.div !-> #body
 			if Plugin.agent().android
-				if Plugin.agent().android > 3
+				if Plugin.agent().android >= 4.4
 					Dom.overflow()
 					Dom.style
 						boxSizing: 'border-box'
