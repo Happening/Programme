@@ -106,7 +106,7 @@ addItem = (item, index, startTime) ->
 
 exports.renderOverview = (items, threads, days, startTimes, endTimes) ->
 	#responsive
-	rowHeight = Math.min(150, Math.max(rowHeight, (Page.height()-140-(threads.length*locationHeight))/threads.length))
+	rowHeight = Math.min(150, Math.max(rowHeight, (Page.height()-170-(threads.length*locationHeight))/threads.length))
 	contentHeight = Math.max(Page.height()-130, threads.length*(rowHeight+locationHeight)+12)+27
 
 	Dom.css
@@ -135,12 +135,13 @@ exports.renderOverview = (items, threads, days, startTimes, endTimes) ->
 		Dom.style height: '100%'
 
 	#overview
+	#if vertical scrolling doesn't work, re-enable the height properties
 	Dom.div !->
 		Dom.style
 			padding: '0px'
 			color: '#bbb'			
 			_userSelect: 'none'
-			height: contentHeight+'px' #thing?
+			# height: contentHeight+'px' #thing?
 			display: 'flex'
 		if not Plugin.agent().android
 			Dom.style
@@ -167,7 +168,7 @@ exports.renderOverview = (items, threads, days, startTimes, endTimes) ->
 				if Plugin.agent().android >= 4.4
 					Dom.style
 						borderBottom: '29px solid transparent'
-						height: height: contentHeight+'px'
+						# height: contentHeight+'px'
 						width: Page.width()+'px'
 
 				Dom.li !-> #no top, margin, padding or border works. so this is it then.
@@ -179,14 +180,14 @@ exports.renderOverview = (items, threads, days, startTimes, endTimes) ->
 					Dom.overflow()
 					Dom.style
 						boxSizing: 'border-box'
-						height: contentHeight
+						# height: contentHeight
 						paddingLeft: '8px'
 			else
 				Dom.style
 					overflowY: 'auto'
 					overflowX: 'visible'
 					boxSizing: 'border-box'
-					height: contentHeight
+					# height: contentHeight
 					paddingLeft: '8px'
 
 			scrollE = Dom.get()	
